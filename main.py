@@ -23,6 +23,22 @@ if undergrad_display == 'Most Births':
 else:
     st.bar_chart(undergrad_by_state_total.sum().sort_values('Number of Births').head(15))
 
+# finding all parents with graduate and above education level
+graduate = df[df['Education Level Code'] > 5]
+graduate.drop(columns=['State', 'Year', 'Gender', 'Education Level of Mother', 'Education Level Code',
+                                  'Average Age of Mother (years)', 'Average Birth Weight (g)'], axis=1, inplace=True)
+graduate_by_state_total = graduate.groupby("State Abbreviation")
+
+# creating streamlit display for graduate state totals
+st.subheader("Education Level: Graduate and Above")
+grad_options = ['Most Births', 'Least Births']
+grad_display = st.radio('Sort by states with:', grad_options, key=10)
+if grad_display == 'Most Births':
+    st.bar_chart(graduate_by_state_total.sum().sort_values('Number of Births').tail(15))
+else:
+    st.bar_chart(graduate_by_state_total.sum().sort_values('Number of Births').head(15))
+
+
 
 
 
