@@ -1,7 +1,9 @@
+import numpy as np
 import streamlit as st
 import pandas as pd
-import numpy as np
-import sklearn
+
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
 from matplotlib import pyplot
 
 df = pd.read_csv("us_births_2016_2021.csv")
@@ -14,7 +16,7 @@ undergraduate.drop(columns=['State', 'Year', 'Gender', 'Education Level of Mothe
 undergrad_by_state_total = undergraduate.groupby("State Abbreviation")
 
 # creating streamlit display for undergrad state totals
-st.header("Total Number of Births by State")
+st.header("Total Number of Births by State (2016-2021)")
 st.subheader("Education Level: Undergraduate and Below")
 undergrad_options = ['Most Births', 'Least Births']
 undergrad_display = st.radio('Sort by states with:', undergrad_options)
@@ -63,5 +65,40 @@ pyplot.ylabel("Average Age")
 pyplot.xlabel("Year")
 pyplot.title("Average age of mother from 2016-2021")
 st.pyplot(pyplot)
+
+# streamlit display for prediction
+st.subheader("Predict education level of mother for given year and age")
+option_choice_year = st.selectbox('Select Year', [2016, 2017, 2018, 2019, 2020, 2021], key=21)
+age = st.slider('An age between 22 and 40', min_value=24, max_value=40)
+st.write('Age: ', age)
+submit = st.button("Predict Education Level")
+for_prediction = df[df['Education Level Code'] > 0].copy()
+if submit:
+    # training the model
+    mylin_model = LinearRegression()
+    for_prediction = df[df['Education Level Code'] > 0].copy()
+    for_prediction.drop(for_prediction.index[for_prediction['Year'] != int(option_choice_year)], inplace=True)
+    x_train, x_test, y_train, y_test = train_test_split(for_prediction['Average Age of Mother (years)'],
+                                                        for_prediction['Education Level Code'])
+    mylin_model.fit(x_train.values.reshape(-1, 1), y_train.values)
+
+    # Obtaining prediction and writing display message
+    prediction = mylin_model.predict(np.array([[age]]))[0]
+    prediction = round(prediction)
+    if prediction < 3:
+        sout = 'Some High School'
+    elif prediction == 3:
+        sout = 'High School Diploma or GED'
+    elif prediction == 4:
+        sout = 'Some college'
+    elif prediction == 5:
+        sout = 'Associate\'s Degree'
+    elif prediction == 6:
+        sout = 'Bachelor\'s Degree'
+    elif prediction == 7:
+        sout = 'Master\'s Degree'
+    elif prediction >= 8:
+        sout = 'Doctorate\'s Degree'
+    st.write('Approximate Education Level Prediction:', sout)
 
 
