@@ -66,10 +66,38 @@ pyplot.xlabel("Year")
 pyplot.title("Average age of mother from 2016-2021")
 st.pyplot(pyplot)
 
+# streamlit display for pie chart
+st.subheader("View birth totals for each education level by state and year")
+option_choice_state_pie = st.selectbox('Select State', state_abbreviations, key=40)
+option_choice_year_pie = st.selectbox('Select Year', [2016, 2017, 2018, 2019, 2020, 2021], key=31)
+for_pie = df[df['Education Level Code'] > 0].copy()
+for_pie.drop(for_pie.index[for_pie['State Abbreviation'] != option_choice_state_pie], inplace=True)
+for_pie.drop(for_pie.index[for_pie['Year'] != option_choice_year_pie], inplace=True)
+# dict for plotting pie chart
+data_for_pie = {}
+for index in for_pie.index:
+    key = for_pie['Education Level of Mother'][index]
+
+    value = for_pie['Number of Births'][index]
+    print(value)
+    if key in data_for_pie.keys():
+        data_for_pie[key] = data_for_pie[key] + value
+    else:
+        data_for_pie[key] = value
+slices = data_for_pie.values()
+labels = ['8th grade or less', 'Some High School', 'High School Grad/GED', 'Some college, no degree',
+          'Associate\'s Degree', 'Bachelor\'s Degree', 'Master\'s Degree', 'Doctorate\'s Degree'
+          ]
+pie_chart, ax1 = pyplot.subplots()
+ax1.pie(slices, labels=labels, wedgeprops={'edgecolor': 'black'})
+ax1.axis('equal')
+
+st.pyplot(pie_chart)
+
 # streamlit display for prediction
 st.subheader("Predict education level of mother for given year and age")
-option_choice_year = st.selectbox('Select Year', [2016, 2017, 2018, 2019, 2020, 2021], key=21)
-age = st.slider('An age between 22 and 40', min_value=24, max_value=40)
+option_choice_year_prediction = st.selectbox('Select Year', [2016, 2017, 2018, 2019, 2020, 2021], key=21)
+age = st.slider('An age between 24 and 40', min_value=24, max_value=40)
 st.write('Age: ', age)
 submit = st.button("Predict Education Level")
 for_prediction = df[df['Education Level Code'] > 0].copy()
@@ -77,7 +105,8 @@ if submit:
     # training the model
     mylin_model = LinearRegression()
     for_prediction = df[df['Education Level Code'] > 0].copy()
-    for_prediction.drop(for_prediction.index[for_prediction['Year'] != int(option_choice_year)], inplace=True)
+    for_prediction.drop(for_prediction.index[for_prediction['Year'] != int(option_choice_year_prediction)],
+                        inplace=True)
     x_train, x_test, y_train, y_test = train_test_split(for_prediction['Average Age of Mother (years)'],
                                                         for_prediction['Education Level Code'])
     mylin_model.fit(x_train.values.reshape(-1, 1), y_train.values)
@@ -85,7 +114,9 @@ if submit:
     # Obtaining prediction and writing display message
     prediction = mylin_model.predict(np.array([[age]]))[0]
     prediction = round(prediction)
-    if prediction < 3:
+    if prediction <= 1:
+        sout = '8th Grade or less'
+    elif prediction == 2:
         sout = 'Some High School'
     elif prediction == 3:
         sout = 'High School Diploma or GED'
@@ -99,6 +130,4 @@ if submit:
         sout = 'Master\'s Degree'
     elif prediction >= 8:
         sout = 'Doctorate\'s Degree'
-    st.write('Approximate Education Level Prediction:', sout)
-
-
+    st.write('Approximate education level prediction:', sout)
