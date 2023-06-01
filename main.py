@@ -43,12 +43,7 @@ else:
 # Line plot segment begins
 avg_year = df[['State Abbreviation', 'Year', 'Average Age of Mother (years)']].copy()
 
-# Obtaining information regarding selected abbreviation
-
-# dropping state abbreviation
-
-
-# streamlit display
+# streamlit display for line chart
 st.subheader("View the average age of mother by state from 2016-2021")
 state_abbreviations = df['State Abbreviation'].unique()
 # creating select box
